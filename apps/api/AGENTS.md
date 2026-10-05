@@ -2,6 +2,14 @@
 
 Applies to `apps/api`.
 
+## Rehla domain decisions
+
+- Resolve storefront identity as `Customer` and staff identity as `User`/Admin; keep actor-specific auth and authorization boundaries.
+- Resolve Visa catalog operations through the Product capability; do not introduce a separate Visa commerce module.
+- Compose checkout into the Rehla `Application` through a workflow from `Cart`; do not add generic Order/shipping/Fulfillment flows.
+- Banner is application/content capability. Compose its API access here without moving ownership into `packages/modules/`.
+- Rehla has one Store in the current scope. Do not infer multi-store routing or tenant isolation.
+
 ## Allowed responsibilities
 
 - HTTP routes/controllers

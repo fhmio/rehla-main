@@ -11,18 +11,20 @@ Read only the minimum context needed for the current task, in this order:
 
 1. This `AGENTS.md` and any deeper applicable `AGENTS.md` files.
 2. `docs/development/constitution.md`
-3. `docs/development/architecture.md`
-4. The relevant stage/domain `index.md`.
-5. The target feature's `spec.md`, `plan.md`, `checklist.md`, and `tasks.md`.
-6. Only the relevant source files, tests, and references.
+3. `docs/development/decisions/001-medusa-without-copying.md`, `docs/development/dependency-graph.md`, and `docs/development/roadmap.md`.
+4. `docs/development/plans/README.md` and the one applicable numbered plan in `docs/development/plans/`.
+5. Only the relevant source files, tests, and references.
 
 Do not load the entire repository unless the task explicitly requires repository-wide analysis.
+
+- A user-authorized cross-plan decision update may update all affected numbered plans and applicable `AGENTS.md` files. This is a documentation-maintenance exception to the one-plan feature scope; it does not authorize feature implementation or unrelated edits.
 
 ## 3. Scope lock
 
 Before editing:
 
 - Identify exactly one active stage and one active feature/plan unless the plan explicitly names more.
+- For an explicitly authorized cross-plan decision update, identify the decision and enumerate every affected plan/agent-guidance file before editing.
 - State the task IDs being executed.
 - Identify the allowed files/directories and direct dependencies.
 - Identify explicit non-goals.
@@ -49,6 +51,17 @@ Use repository evidence and the active specification as the source of intent.
 - Do not reinterpret an explicit requirement for convenience.
 - Do not replace an existing project decision with a personal preference.
 - When the current artifacts conflict, stop implementation of the conflicting part and report the exact contradiction with file references.
+
+## Binding Rehla product and architecture decisions
+
+- Rehla is an independent monorepo. Reuse selected Medusa patterns and compatible packages; never add the Medusa repository as a second source tree.
+- The current product has one `Store`; do not introduce a multi-store requirement without a later approved decision.
+- `Product` is the catalog primitive. A Visa Service is a Product with Rehla-specific fields; do not create a separate Visa commerce module.
+- `Customer` is the storefront/business actor. `User` is the Staff/Admin actor. Keep their identities and authentication contexts distinct.
+- The service-commerce path is `Cart → Application`; do not add a generic Order, shipping, or Fulfillment journey to the current core.
+- `Banner` is an application/content capability, not a package under `packages/modules/`.
+- Admin is a Rehla application. Adopt useful resource, layout, widget, and design patterns while keeping Rehla resources, business logic, and features owned by Rehla.
+- Use Links for cross-domain associations, Workflows for multi-domain commands, and Events/Jobs for asynchronous side effects.
 
 ## 5. Dependency discipline
 
@@ -79,12 +92,12 @@ A change is out of scope when it:
 
 ## 7. Plan execution
 
-`tasks.md` is the executable work list.
+In the current numbered-plan format, the ordered phases and their `Changes Required` sections are the executable work list. If a plan includes a detailed `tasks.md`, use it as the granular work list for that plan.
 
 - Execute tasks in dependency order.
 - Respect `[P]` parallel markers only when their dependencies and file ownership are independent.
 - Do not mark a task complete until its implementation and validation are complete.
-- Keep `plan.md` updated with material progress, discoveries, decisions, and outcomes.
+- Keep the active numbered plan updated with material progress, discoveries, decisions, and outcomes.
 
 ## 8. Verification
 
@@ -103,10 +116,9 @@ Never claim completion from compilation alone when behavior can be tested.
 
 Before declaring a feature complete, compare the implementation against:
 
-- `spec.md`
-- `plan.md`
-- `tasks.md`
-- `constitution.md`
+- its applicable numbered plan and any feature-level `spec.md`, `plan.md`, `checklist.md`, or `tasks.md` that exists;
+- `docs/development/constitution.md`;
+- the applicable decision record and dependency graph.
 
 Check for missing, partial, contradictory, and unrequested work.
 If a gap is found, record it as a convergence task and return to implementation.
@@ -115,7 +127,7 @@ Do not hide missing work by changing the specification to match an incomplete im
 ## 10. Handoff
 
 Leave enough state for another agent to continue without conversation history.
-Update the feature `plan.md` with:
+Update the active numbered plan with:
 
 - current progress;
 - material discoveries;

@@ -2,6 +2,14 @@
 
 Applies to `packages/modules/*`.
 
+## Rehla domain boundaries
+
+- `Product` owns the catalog primitive; Visa Service is represented as a Product with Rehla-specific fields, not as a separate Visa commerce module.
+- `Customer` owns the storefront/business actor. `User` remains the separate Admin/Staff actor and is not folded into Customer.
+- The current Store capability represents one Rehla Store; do not add multi-store behavior without an approved decision.
+- Do not add a Banner module under this directory. Banner is an application/content capability.
+- Do not add generic Order, shipping, or Fulfillment domains to the current service-commerce core.
+
 ## Ownership
 
 Each module owns one domain boundary, including its own models, migrations, and domain service operations.
