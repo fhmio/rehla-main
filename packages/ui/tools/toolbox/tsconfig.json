@@ -1,0 +1,13 @@
+{
+  "extends": "@rehla-ui/tsconfig/base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "baseUrl": ".",
+    "resolveJsonModule": true,
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,49 @@
+name: Deploy Storybook
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_PROD }}
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps: 
+        - name: Check out code
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 2
+ 
+        - name: Setup Node.js environment
+          uses: actions/setup-node@v4
+          with:
+            node-version: 18
+            cache: 'yarn'
+        
+        - name: Install Vercel CLI
+          run: npm install --global vercel@latest
+ 
+        - name: Install dependencies
+          run: yarn
+ 
+        - name: Build monorepo packages
+          run: yarn build
+ 
+        - name: Pull Vercel Environment Information
+          working-directory: packages/ui
+          run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+        - name: Build Project Artifacts
+          working-directory: packages/ui
+          run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+        - name: Deploy Project Artifacts to Vercel
+          working-directory: packages/ui
+          run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+    
+
+      
+

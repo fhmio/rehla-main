@@ -1,0 +1,50 @@
+{
+  "name": "rehla-ui",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fhmifarid/rehla-ui.git"
+  },
+  "homepage": "https://github.com/fhmifarid/rehla-ui#readme",
+  "bugs": {
+    "url": "https://github.com/fhmifarid/rehla-ui/issues"
+  },
+  "scripts": {
+    "test": "turbo run test",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "release": "changeset publish",
+    "version": "changeset version && yarn install --no-immutable",
+    "release:beta": "changeset publish --no-git-tags --snapshot --tag beta",
+    "version:beta": "changeset version --snapshot beta",
+    "release:alpha": "changeset publish --no-git-tags --snapshot --tag alpha",
+    "version:alpha": "changeset version --snapshot alpha",
+    "release:snapshot": "changeset publish --no-git-tags --snapshot --tag snapshot",
+    "rename:verify": "node scripts/rename-verify.mjs"
+  },
+  "devDependencies": {
+    "@rehla-ui/eslint-config": "*",
+    "@rehla-ui/toolbox": "*",
+    "eslint": "^8.44.0",
+    "prettier": "^2.5.1",
+    "rimraf": "^5.0.1",
+    "turbo": "latest",
+    "typescript": "^5.1.6"
+  },
+  "packageManager": "yarn@3.5.1",
+  "workspaces": [
+    "packages/*",
+    "tools/*",
+    "configs/*",
+    "tests/*"
+  ],
+  "dependencies": {
+    "@changesets/cli": "^2.26.1",
+    "eslint-plugin-react-hooks": "^4.6.0"
+  },
+  "resolutions": {
+    "class-variance-authority@^0.6.1": "patch:class-variance-authority@npm%3A0.6.1#./.yarn/patches/class-variance-authority-npm-0.6.1-22a468e86e.patch"
+  }
+}

@@ -1,0 +1,3 @@
+{
+  "extends": "@rehla-ui/tsconfig/base.json"
+}

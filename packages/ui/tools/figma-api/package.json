@@ -1,0 +1,33 @@
+{
+  "name": "@rehla-ui/figma-api",
+  "version": "0.1.0",
+  "description": "Figma API client for Rehla UI generation tools",
+  "author": "Rehla UI Maintainers <team@rehla.local>",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "axios": "1.4.0",
+    "axios-retry": "3.5.1"
+  },
+  "devDependencies": {
+    "@rehla-ui/eslint-config": "*",
+    "@rehla-ui/tsconfig": "*",
+    "eslint": "^7.32.0",
+    "tsup": "7.1.0",
+    "typescript": "5.1.6"
+  },
+  "private": true,
+  "access": "public",
+  "packageManager": "yarn@3.5.0"
+}
