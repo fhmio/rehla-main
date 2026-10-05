@@ -4,7 +4,7 @@
 Add structured logging, health/readiness, metrics, traces, and event-driven business analytics.
 
 ## Current State Analysis
-The supplied Medusa source is a large modular monorepo separating reusable modules, framework/core, Admin, design system, application composition, plugins, and integration tests. Rehla adopts the relevant boundaries and patterns but remains a separate project. The supplied create/implement plan rules require full context, ordered phases, measurable automated/manual verification, and no unchecked open questions.
+This plan is self-contained. Its Rehla boundaries, contracts, data ownership, and completion criteria are stated below; no source repository or external framework guide is needed.
 
 ## Desired End State
 Rehla has a production-ready implementation for **Observability and Analytics**, integrated with the previously completed phases and without introducing an upstream Medusa repository copy.
@@ -28,14 +28,32 @@ Rehla has a production-ready implementation for **Observability and Analytics**,
 - Replacing a Rehla-specific domain with an unrelated Medusa commerce domain merely to reuse code.
 
 ## Implementation Approach
-Implement from the domain boundary outward: schema/model → service → workflow/event/link → API → Admin/Web integration → verification. Keep Rehla independent. After compatibility review, consume compatible Medusa packages as dependencies and localize only the smallest source unit requiring Rehla-specific customization; never add the Medusa repository as a second source tree.
+Implement in dependency order: owned model → public service contract → API action or workflow → client integration → automated and manual verification. Keep all Rehla domains and routes Rehla-owned.
+
+## Standalone Rehla Contract
+
+This plan is independently executable from this file. Rehla is one repository and one TypeScript/Node modular-monolith API. The API composes runtime, routes, middleware, modules, workflows, subscribers, jobs, Links, and search. Each business module owns its models, migrations, service, validation, and tests under packages/modules/<module>; API application code orchestrates but does not own module persistence. apps/admin and apps/web are Rehla-owned Next.js App Router apps. They use only packages/contracts and packages/sdk to call the API; neither reads the database nor imports module internals. packages/ui contains generic visual primitives only.
+
+The baseline domain is one Store; Customer is the storefront actor; User is staff; Product is a Visa Service; Cart contains selected services; Application is the operational request. The canonical path is Cart → Application → Documents → Payment → Tracking. Do not add generic Order, shipping, fulfillment, physical inventory, flights, hotels, agency marketplace, or a Banner module. Banner is API application content. Use public module contracts for synchronous calls, Links for cross-module relationships, Workflows for multi-module commands, and Events/Jobs for asynchronous side effects. PostgreSQL is transactional truth, Redis is infrastructure, and sensitive files are private behind File. Server-side validation, ownership, authorization, price, and state transitions are authoritative.
+
+## Plan-Specific Rehla Contract
+
+### Signals and ownership
+- Structured logs include request/correlation ID, service, operation, outcome, duration, and safe actor/resource identifiers. Do not log passwords, tokens, applicant document content, receipt contents, private URLs, or unnecessary PII.
+- Readiness distinguishes API process, PostgreSQL, Redis/runtime dependencies, and configured file/provider reachability. Liveness must not claim business data is healthy merely because the process responds.
+- Metrics cover request rate/errors/latency, workflow success/retry/failure, queue/job latency, payment/document review workload, application status counts, and file-provider errors. Avoid high-cardinality customer identifiers.
+- Traces propagate through HTTP, workflow steps, module calls, events, and provider calls with correlation context.
+- Analytics is a reporting projection, not a second transactional database. Domain modules remain truth; analytics failures cannot block or alter business writes. Operational reports include application volume/status, review workload, service performance, customer activity, and turnaround times.
+
+### Acceptance
+Test redaction, request correlation, dependency degradation, metrics accuracy against source records, duplicate event handling, and dashboard authorization. Define retention and alert thresholds as deployment configuration with owner and rationale; do not hard-code unsupported business SLAs.
 
 ## Phase 1: Health and structured logging
 
 ### Changes Required
-- Create the files/modules/configuration needed for health and structured logging.
-- Keep ownership inside Rehla and preserve the documented module/application boundary.
-- Add migrations/contracts/tests before exposing the feature to downstream phases.
+- Deliver only the schema, migration (when persistent state changes), public service contract, API/client interface, and named tests required by the Plan-Specific Rehla Contract in this file.
+- Execute and persist behavior only in the owner named in this plan; expose public contracts and do not import another module internals or move domain behavior into a UI.
+- Add versioned migrations only for owned persistent data; define the public request/response contract and required tests before exposing the capability to another surface.
 
 ### Success Criteria
 
@@ -56,9 +74,9 @@ Implement from the domain boundary outward: schema/model → service → workflo
 ## Phase 2: Metrics and tracing
 
 ### Changes Required
-- Implement metrics and tracing using the established Rehla/Medusa-compatible pattern.
-- Expose only the endpoints and APIs required by the established scope.
-- Add negative/error-path tests and idempotency where mutations cross boundaries.
+- Implement metrics and tracing as specified in the Plan-Specific Rehla Contract above, including ownership, inputs/outputs, server-side validation/authorization, failure handling, and acceptance cases.
+- Publish only the operations listed in this plan, with their actor, ownership, input/output, error, pagination, and idempotency contract.
+- Implement the negative, permission, failure, retry, and idempotency cases listed in this plan; state explicitly when an operation is not retryable.
 
 ### Success Criteria
 
@@ -79,9 +97,9 @@ Implement from the domain boundary outward: schema/model → service → workflo
 ## Phase 3: Business analytics
 
 ### Changes Required
-- Integrate business analytics with dependent modules through Links, Events, or Workflows.
-- Add Admin/Web integration only after the backend contract is verified.
-- Document operational and rollback behavior for the phase.
+- For business analytics, use the exact public contract, Link, Workflow, Event, or Job assigned to each operation in this plan; do not use private cross-module access.
+- Connect the named surface through packages/sdk and packages/contracts after the API/action contract is tested; keep authoritative validation and business rules on the server.
+- Record rollback/compensation, data-retention behavior, and operator-visible failure signals for each persistent or irreversible change.
 
 ### Success Criteria
 
@@ -111,9 +129,5 @@ Measure database query count, payload size, API latency, cache behavior, and bac
 ## Migration Notes
 Use clean Rehla migrations for new domains. Do not replay unrelated historical Medusa migrations. Any localized Medusa module migration must be reconciled to the current Rehla schema before deployment.
 
-## References
-
-- `docs/development/constitution.md` — confirmed Rehla scope and operating rules.
-- `docs/development/decisions/001-medusa-without-copying.md` — Medusa reuse and domain decisions.
-- `docs/development/dependency-graph.md` — plan ordering and dependencies.
-
+## Self-containment
+This plan includes its Rehla-specific scope, interfaces, ownership, security rules, ordered deliverables, and acceptance criteria. Internal plans may be used for sequencing only; implementation does not require access to a Medusa repository or external source files.

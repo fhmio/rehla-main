@@ -2,7 +2,9 @@
 
 Execution order is numerical from Foundation to Production Release.
 
-All plans follow the current Rehla decisions: one Store; Product is the catalog primitive and a Visa Service is a Product; Customer and Admin User are separate actors; the service-commerce path is `Cart → Application`; and Banner is an application/content capability, not a module under `packages/modules/`. Rehla adopts selected Medusa patterns and compatible packages while remaining an independent repository. See [the constitution](../constitution.md), [ADR 001](../decisions/001-medusa-without-copying.md), and [the dependency graph](../dependency-graph.md).
+Every numbered plan is designed to stand alone. Its Rehla scope, decisions, module ownership, interfaces, work steps, security constraints, and acceptance evidence are written inside that plan. The plans may use earlier Rehla plans for sequencing, but they do not require returning to the Medusa repository or consulting its source files. Rehla remains the owner of its domains and applications; the pinned runtime/package boundary is stated directly in the relevant plans.
+
+All plans repeat the required Rehla baseline where relevant: one Store; Product is the catalog primitive and a Visa Service is a Product; Customer and Admin User are separate actors; the service-commerce path is `Cart → Application`; Banner is an application/content capability, not a module under `packages/modules/`; and all client applications use the Rehla API contract. Cross-module relationships use Links, multi-step commands use Workflows, and asynchronous side effects use Events/Jobs. Domain decisions remain Rehla-owned; optional internal references provide sequencing and governance context, not missing implementation instructions.
 
 - [00 — Foundation and Monorepo](./00-foundation.md)
 - [01 — Architecture and Module Boundaries](./01-architecture.md)

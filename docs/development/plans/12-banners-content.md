@@ -4,7 +4,7 @@
 Implement Banners as an application/content feature, not a `packages/modules` commerce module, with Product/Visa Service click targets.
 
 ## Current State Analysis
-The supplied Medusa source is a large modular monorepo separating reusable modules, framework/core, Admin, design system, application composition, plugins, and integration tests. Rehla adopts the relevant boundaries and patterns but remains a separate project. The supplied create/implement plan rules require full context, ordered phases, measurable automated/manual verification, and no unchecked open questions.
+This plan is self-contained. Its Rehla boundaries, contracts, data ownership, and completion criteria are stated below; no source repository or external framework guide is needed.
 
 ## Desired End State
 Rehla has a production-ready implementation for **Banners and Storefront Content**, integrated with the previously completed phases and without introducing an upstream Medusa repository copy.
@@ -28,14 +28,29 @@ Rehla has a production-ready implementation for **Banners and Storefront Content
 - Replacing a Rehla-specific domain with an unrelated Medusa commerce domain merely to reuse code.
 
 ## Implementation Approach
-Implement from the domain boundary outward: schema/model → service → workflow/event/link → API → Admin/Web integration → verification. Keep Rehla independent. After compatibility review, consume compatible Medusa packages as dependencies and localize only the smallest source unit requiring Rehla-specific customization; never add the Medusa repository as a second source tree.
+Implement in dependency order: owned model → public service contract → API action or workflow → client integration → automated and manual verification. Keep all Rehla domains and routes Rehla-owned.
+
+## Standalone Rehla Contract
+
+This plan is independently executable from this file. Rehla is one repository and one TypeScript/Node modular-monolith API. The API composes runtime, routes, middleware, modules, workflows, subscribers, jobs, Links, and search. Each business module owns its models, migrations, service, validation, and tests under packages/modules/<module>; API application code orchestrates but does not own module persistence. apps/admin and apps/web are Rehla-owned Next.js App Router apps. They use only packages/contracts and packages/sdk to call the API; neither reads the database nor imports module internals. packages/ui contains generic visual primitives only.
+
+The baseline domain is one Store; Customer is the storefront actor; User is staff; Product is a Visa Service; Cart contains selected services; Application is the operational request. The canonical path is Cart → Application → Documents → Payment → Tracking. Do not add generic Order, shipping, fulfillment, physical inventory, flights, hotels, agency marketplace, or a Banner module. Banner is API application content. Use public module contracts for synchronous calls, Links for cross-module relationships, Workflows for multi-module commands, and Events/Jobs for asynchronous side effects. PostgreSQL is transactional truth, Redis is infrastructure, and sensitive files are private behind File. Server-side validation, ownership, authorization, price, and state transitions are authoritative.
+
+## Plan-Specific Rehla Contract
+
+### Content feature boundary
+Banner is application content under apps/api/src/features/content/banners. It is not a packages/modules domain. The API feature owns banner persistence/configuration and public Admin/Web operations; the Admin exposes a resource and Web renders published content. Shared UI contains only generic presentation primitives.
+A banner may contain image/media reference, title, short text, display order, active state, optional publication schedule, destination/action, and metadata. Supported destinations are an allowlisted Rehla route such as a Visa Service detail or approved content route. Validate identifiers with public Product/content contracts; reject arbitrary external URLs and unsupported route types unless explicitly approved.
+
+### Acceptance
+Provide permission-protected create/list/detail/update/publish/unpublish/archive operations and a public endpoint returning only active, currently published banners in display order. Validate date windows and target existence, serve media through File rules, escape/sanitize text, and test schedule boundaries, disabled content, invalid destination, deletion of referenced target, and empty storefront response.
 
 ## Phase 1: Banner data/API
 
 ### Changes Required
 - Create the application/content files and API configuration needed for banner data and delivery; do not create a Banner domain module.
-- Keep ownership inside Rehla and preserve the documented module/application boundary.
-- Add migrations/contracts/tests before exposing the feature to downstream phases.
+- Execute and persist behavior only in the owner named in this plan; expose public contracts and do not import another module internals or move domain behavior into a UI.
+- Add versioned migrations only for owned persistent data; define the public request/response contract and required tests before exposing the capability to another surface.
 
 ### Success Criteria
 
@@ -56,9 +71,9 @@ Implement from the domain boundary outward: schema/model → service → workflo
 ## Phase 2: Admin Banner resource
 
 ### Changes Required
-- Implement admin banner resource using the established Rehla/Medusa-compatible pattern.
-- Expose only the endpoints and APIs required by the established scope.
-- Add negative/error-path tests and idempotency where mutations cross boundaries.
+- Implement admin banner resource as specified in the Plan-Specific Rehla Contract above, including ownership, inputs/outputs, server-side validation/authorization, failure handling, and acceptance cases.
+- Publish only the operations listed in this plan, with their actor, ownership, input/output, error, pagination, and idempotency contract.
+- Implement the negative, permission, failure, retry, and idempotency cases listed in this plan; state explicitly when an operation is not retryable.
 
 ### Success Criteria
 
@@ -79,9 +94,9 @@ Implement from the domain boundary outward: schema/model → service → workflo
 ## Phase 3: Web rendering and Product target resolution
 
 ### Changes Required
-- Integrate web rendering and product target resolution with dependent modules through Links, Events, or Workflows.
-- Add Admin/Web integration only after the backend contract is verified.
-- Document operational and rollback behavior for the phase.
+- For web rendering and product target resolution, use the exact public contract, Link, Workflow, Event, or Job assigned to each operation in this plan; do not use private cross-module access.
+- Connect the named surface through packages/sdk and packages/contracts after the API/action contract is tested; keep authoritative validation and business rules on the server.
+- Record rollback/compensation, data-retention behavior, and operator-visible failure signals for each persistent or irreversible change.
 
 ### Success Criteria
 
@@ -111,9 +126,5 @@ Measure database query count, payload size, API latency, cache behavior, and bac
 ## Migration Notes
 Use clean Rehla migrations for new domains. Do not replay unrelated historical Medusa migrations. Any localized Medusa module migration must be reconciled to the current Rehla schema before deployment.
 
-## References
-
-- `docs/development/constitution.md` — confirmed Rehla scope and operating rules.
-- `docs/development/decisions/001-medusa-without-copying.md` — Medusa reuse and domain decisions.
-- `docs/development/dependency-graph.md` — plan ordering and dependencies.
-
+## Self-containment
+This plan includes its Rehla-specific scope, interfaces, ownership, security rules, ordered deliverables, and acceptance criteria. Internal plans may be used for sequencing only; implementation does not require access to a Medusa repository or external source files.

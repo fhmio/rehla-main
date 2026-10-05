@@ -8,7 +8,7 @@
 
 **Tech Stack:** Node.js 24 LTS, Yarn 3.5.1 workspaces with node-modules linker, Turborepo 2.11.6, Medusa 2.21.2, Next.js 16.2 App Router with React 19.2, TypeScript, Prettier 3.9.6, PostgreSQL 17 for local development, GitHub Actions.
 
-**Spec:** [docs/development/specs/00-foundation.md](../specs/00-foundation.md)
+**Decision record:** Option A is approved: both Admin and Web use Next.js App Router. The implementation requirements and acceptance gates are also included in this plan.
 
 **Plan Status:** Ready for user review; implementation not started.
 
@@ -18,6 +18,14 @@
 - Planned task IDs: FND-01 through FND-07, listed as Tasks 1–7 below.
 - This artifact defines implementation only; do not begin code changes until this plan is approved.
 - Explicit non-goals: domain features, credentials/providers, production deployment, and changes to the constitution or product/domain decisions.
+
+## Standalone Rehla Contract
+
+This foundation creates the executable repository/runtime boundary used by every later plan. Rehla is one independent Yarn workspace and a TypeScript/Node modular monolith. `apps/api` composes the Medusa 2.21.2 runtime and owns HTTP routes, middleware, startup composition, workflows, subscribers, jobs, links, and search indexing. Domain state belongs to the owning package under `packages/modules/*`; application code does not own module tables. `apps/admin` and `apps/web` are separate Rehla-owned Next.js App Router applications. Both call `apps/api` through `packages/sdk` and `packages/contracts`; neither imports API/module internals or accesses the database. `packages/ui` is generic design-system code only.
+
+The business vocabulary established for the workspace is: one `Store`; `Customer` for the storefront actor; `User` for staff; `Product` for the sellable Visa Service; `Cart` for selected services; and `Application` for the operational visa request. The process is `Cart → Application → Documents → Payment → Tracking`; there is no generic Order, shipping, fulfillment, flight, hotel, marketplace, agency, or physical-inventory domain. Banner/content is an API application feature, not a module package. Links represent cross-module associations, Workflows coordinate multi-module operations, and Events/Jobs perform asynchronous reactions. Backend validation, authorization, pricing, and state transitions are authoritative. PostgreSQL is transactional system of record; Redis supports cache/locks/runtime; sensitive files use a private File abstraction/provider.
+
+This plan defines the workspace, app, API health contract, and test interfaces below. Later plans must repeat the Rehla-specific contracts they need and must not require opening the Medusa source repository or external framework documentation to understand their tasks.
 
 ## Global Constraints
 
@@ -50,12 +58,30 @@
 - Medusa build failure caused by a shared root file omitted by Turborepo pruning — Task 4 builds the API and Task 7 runs turbo prune for @rehla/api.
 - Workspace task cycles or missing dependency ordering — Task 3 runs Turborepo dry-run graph checks before the full build.
 
+## Foundation Acceptance Criteria
+
+The foundation is complete only when all criteria below have recorded evidence:
+
+1. A clean checkout installs all workspaces from the repository root with one lockfile and the pinned runtime/package manager.
+2. Root workspace discovery includes each app and every existing UI workspace exactly once.
+3. API, Admin, and Web each start and build independently; the root development command starts the intended applications together.
+4. API health/readiness succeeds and both frontend shells render their placeholder pages.
+5. Both frontend shells consume `@rehla-ui/ui` through declared workspace dependencies, and existing UI test/build commands work from the root.
+6. Existing UI tests/build pass with React 19 while public exports and component behavior remain stable.
+7. Root lint, typecheck, test, and build pass with correct dependency ordering and no task cycle.
+8. CI uses the same root install and verification commands as local development.
+9. README provides clean-checkout runtime setup, install, focused app commands, root commands, environment variables, and troubleshooting.
+10. Review confirms no business-domain implementation, repository/source copy, secrets, or excluded commerce behavior entered the foundation.
+
+Automated evidence and human review are recorded separately. A build alone cannot close behavior, security, or manual-review criteria.
+
 ---
 
 ### FND-01: Reconcile the approved framework decision in project guidance
 
 **Files:**
 - Modify: docs/development/architecture.md
+- Modify: docs/development/decisions/REHLA_DECISIONS.md
 - Modify: README.md
 - Modify: docs/development/plans/README.md
 - Modify: AGENTS.md
@@ -67,7 +93,8 @@
 - Consumes: The approved decision in the spec: Next.js App Router for both Admin and Web.
 - Produces: Consistent written guidance that names the API as the Medusa runtime, Admin and Web as Rehla-owned Next.js applications, and the existing plan/spec relationship.
 
-- [ ] Confirm the spec records approval of Option A on 2026-10-05; use it as the source for the documentation updates.
+- [ ] Use the approved Option A decision recorded in this plan: Next.js App Router for both Admin and Web.
+- [ ] Record the approved Admin framework change in `REHLA_DECISIONS.md` using the document's change-control fields: previous Admin choice, new Next.js App Router choice, reason, affected Admin/Web/UI/API boundaries, migration and compatibility impact, and required verification. Keep the Web Next.js decision and all Rehla ownership boundaries intact.
 - [ ] Update architecture repository shape and Admin/Web sections to specify Next.js App Router; keep Admin resources and business behavior Rehla-owned.
 - [ ] Update README architecture summary and plans index to link the foundation specification and plan.
 - [ ] Add the framework decision to root/app agent guidance; do not alter module, provider, or SDK domain rules.
@@ -179,9 +206,9 @@
 - [ ] Write SDK unit tests first for successful response, non-2xx response, fetch rejection, and malformed response body; run yarn workspace @rehla/sdk test and confirm the new tests fail before implementation.
 - [ ] Implement the SDK client and rerun yarn workspace @rehla/sdk test. Expected: all four cases pass.
 - [ ] Bootstrap apps/api from the Medusa 2.21.2 application runtime without importing Medusa Admin UI or adding a Medusa source tree.
-- [ ] Implement GET /health in apps/api/src/api/health/route.ts using the Medusa route contract; return exactly { status: "ok", service: "api" }.
-- [ ] Add a Medusa integration test using medusaIntegrationTestRunner for status code 200 and exact response body; run yarn workspace @rehla/api test:integration:http. Use the official API-route integration pattern and a 60-second Jest timeout.
-- [ ] Add jest.config.cjs and integration-tests/setup.cjs using Medusa's testing-tool setup. Declare @medusajs/test-utils, Jest 29.7, @swc/jest, @swc/core, @types/jest, and cross-env 7.0.3; define the cross-platform test script as cross-env TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit.
+- [ ] Implement unauthenticated `GET /health` in `apps/api/src/api/health/route.ts`; return HTTP 200 and exactly `{ status: "ok", service: "api" }` with JSON content type.
+- [ ] Add an HTTP integration test that starts the configured API test application, issues `GET /health`, and asserts status 200 and the exact JSON body; run `yarn workspace @rehla/api test:integration:http` with a 60-second Jest timeout.
+- [ ] Add `jest.config.cjs` and `integration-tests/setup.cjs`. Use `medusaIntegrationTestRunner` from the pinned `@medusajs/test-utils` public export to launch the app; declare Jest 29.7, `@swc/jest`, `@swc/core`, `@types/jest`, and `cross-env` 7.0.3. Define the cross-platform command as `cross-env TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit`.
 - [ ] Add compose.yaml for local PostgreSQL 17 only, with persistent named volume, healthcheck, localhost-only port binding, and development-only credentials read from the API .env.example.
 - [ ] Set API database configuration through DATABASE_URL; .env.example must contain a clearly local-only sample and no production credentials.
 - [ ] Run: docker compose up -d postgres; yarn workspace @rehla/api build; yarn workspace @rehla/api test:integration:http. Expected: database healthy, API build succeeds, and the route integration test passes.
@@ -258,19 +285,15 @@
 - [ ] Run from the repository root: yarn install --immutable; yarn verify:workspaces; yarn lint; yarn typecheck; yarn test; yarn build.
 - [ ] Run the API health smoke request and verify both Next.js apps manually at their documented local ports.
 - [ ] Run yarn turbo prune @rehla/api --docker and verify the pruned API build contains all required workspace manifests/configuration without relying on arbitrary root files.
-- [ ] Compare every acceptance criterion in docs/development/specs/00-foundation.md against a task and captured command/manual evidence.
+- [ ] Compare each of the ten Foundation Acceptance Criteria above against an implementation task and captured command/manual evidence.
 - [ ] Record automated results and human manual review separately; leave manual criteria unchecked until confirmed by a person.
 - [ ] Record exact progress, decisions, discoveries, validation, and remaining blockers in this plan; do not claim completion while any acceptance criterion remains open.
 
-## Compatibility References
+## Locked Foundation Decisions
 
-- [Next.js 16 release](https://nextjs.org/blog/next-16) and [Next.js support policy](https://nextjs.org/support-policy)
-- [Prettier releases](https://github.com/prettier/prettier/releases)
-- [React Testing Library releases](https://github.com/testing-library/react-testing-library/releases) (use a release with React 19 support)
-- [Medusa current version](https://docs.medusajs.com/learn/update) and [Medusa monorepo prerequisites](https://docs.medusajs.com/cloud/projects/prerequisites)
-- [Medusa API route integration tests](https://docs.medusajs.com/learn/debugging-and-testing/testing-tools/integration-tests/api-routes) and [Medusa test setup](https://docs.medusajs.com/learn/debugging-and-testing/testing-tools)
-- [Turborepo releases](https://github.com/vercel/turborepo/releases)
-- [Yarn with Corepack](https://yarnpkg.com/getting-started/install)
+- Runtime/tool versions, workspace patterns, API health schema, local PostgreSQL behavior, UI peer compatibility, app boundaries, root scripts, and CI commands are specified in this plan's Global Constraints and Tasks FND-01–FND-07.
+- The Medusa runtime is an npm dependency at the pinned version stated above. Its repository, dashboard, modules, and source tree are not copied into Rehla.
+- No implementation task may infer extra Rehla business domains from the runtime's available features.
 
 ---
 
