@@ -6,9 +6,11 @@
 
 **Architecture:** Rehla is one monorepo and remains independent from the Medusa repository. Yarn owns one workspace graph and lockfile; Turborepo orders package and application tasks. The Medusa API exposes a minimal health contract, Next.js Admin and Web consume shared UI and API contracts through the SDK, and no business domains are implemented.
 
-**Tech Stack:** Node.js 24 LTS, Yarn 3.5.1 workspaces with node-modules linker, Turborepo 2.11.6, Medusa 2.21.2, Next.js 16.2 App Router, TypeScript, PostgreSQL 17 for local development, GitHub Actions.
+**Tech Stack:** Node.js 24 LTS, Yarn 3.5.1 workspaces with node-modules linker, Turborepo 2.11.6, Medusa 2.21.2, Next.js 16.2 App Router with React 19.2, TypeScript, Prettier 3.9.6, PostgreSQL 17 for local development, GitHub Actions.
 
 **Spec:** [docs/development/specs/00-foundation.md](../specs/00-foundation.md)
+
+**Plan Status:** Ready for user review; implementation not started.
 
 ## Planning Scope
 
@@ -50,7 +52,7 @@
 
 ---
 
-### Task 1: Reconcile the approved framework decision in project guidance
+### FND-01: Reconcile the approved framework decision in project guidance
 
 **Files:**
 - Modify: docs/development/architecture.md
@@ -72,7 +74,7 @@
 - [ ] Run: Select-String -Path docs/development/architecture.md,README.md,AGENTS.md,apps/AGENTS.md,apps/admin/AGENTS.md,apps/web/AGENTS.md -Pattern 'React/Vite-like'. Expected: no matches for the Admin target.
 - [ ] Check each changed local Markdown link resolves with Test-Path; manually compare the repository shape and framework statements across the spec, architecture, README, and agent guidance.
 
-### Task 2: Establish the single root Yarn workspace and absorb UI workspace configuration
+### FND-02: Establish the single root Yarn workspace and absorb UI workspace configuration
 
 **Files:**
 - Create: package.json
@@ -122,7 +124,7 @@
 - [ ] Run: yarn workspaces list --json. Expected: each root app, contracts/SDK package, UI container, and six existing UI leaf workspaces appears exactly once.
 - [ ] In Task 3, add the repeatable discovery check and rerun it after all workspaces are present.
 
-### Task 3: Define Turborepo tasks and repeatable workspace checks
+### FND-03: Define Turborepo tasks and repeatable workspace checks
 
 **Files:**
 - Create: turbo.json
@@ -137,15 +139,15 @@
 
 - [ ] Migrate the UI Turbo pipeline to the Turborepo 2 tasks schema and define build outputs for dist/**, .next/**, and API build output; mark dev persistent and uncached.
 - [ ] Define root scripts that invoke the root turbo binary once; do not retain a UI container script that recursively calls turbo run.
-- [ ] Add Prettier using the existing UI workspace's ^2.5.1 dependency range. Add root React/React DOM 19.2 and React type devDependencies for shared UI test tooling; apps also declare the same runtime versions.
-- [ ] Define format:check over app/package source and files changed by Task 1; exclude generated files and never invoke the old write-mode format script.
+- [ ] Add root Prettier 3.9.6. Add root React/React DOM 19.2 and matching React type devDependencies for shared UI test tooling; apps also declare the same runtime versions.
+- [ ] Add .prettierignore entries for node_modules, .next, .turbo, .yarn, and .medusa. Define format:check as prettier --check over apps/**/*.{js,mjs,ts,tsx,json,md}, packages/{contracts,sdk}/**/*.{js,mjs,ts,tsx,json,md}, packages/ui/**/package.json, README.md, AGENTS.md, and the changed development architecture/plan/spec files; never invoke the old write-mode format script.
 - [ ] Create scripts/verify-workspaces.mjs. It must invoke yarn workspaces list --json, parse JSON lines, reject duplicate names, and assert the 12 expected workspace names from Task 2.
 - [ ] Add a workspace verification script command and document its expected workspace set in the script itself.
 - [ ] Run: yarn verify:workspaces. Expected: exit code 0 and all expected workspace names reported.
 - [ ] Run: yarn turbo run build --dry=json and yarn turbo run test --dry=json. Expected: valid JSON task graphs, upstream UI build before consumers, and no cycle diagnostics.
 - [ ] Run: yarn format:check. Expected: no formatting changes; this command must check only supported file types and must not write files.
 
-### Task 4: Create API bootstrap, local PostgreSQL, health contract, and SDK client
+### FND-04: Create API bootstrap, local PostgreSQL, health contract, and SDK client
 
 **Files:**
 - Create: apps/api/medusa-config.ts
@@ -186,7 +188,7 @@
 - [ ] Run the API locally and request http://localhost:9000/health. Expected: HTTP 200 and the exact HealthResponse JSON.
 - [ ] Do not create a root tsconfig consumed by apps/api; each workspace owns a tsconfig to remain available in a Medusa Turborepo-pruned build.
 
-### Task 5: Create Next.js Admin and Web shells that consume shared UI
+### FND-05: Create Next.js Admin and Web shells that consume shared UI
 
 **Files:**
 - Create: apps/admin/next.config.ts
@@ -213,7 +215,7 @@
 - [ ] Add Next.js 16.2 App Router dependencies and scripts to both app manifests; use React 19.2 and pin identical Next.js and React versions in the root lockfile.
 - [ ] Add @rehla-ui/ui and @rehla/sdk as workspace dependencies in both apps; enable transpilation for the shared UI package where required by Next.js.
 - [ ] Extend @rehla-ui/ui React and React DOM peer ranges to ^18.0.0 || ^19.2.0; remove workspace-local React runtime devDependencies in favor of the root React 19.2 test versions; update React type packages to 19.2, @testing-library/react to 16.3.3, and @testing-library/dom to 10.x while preserving all component exports.
-- [ ] Run the existing focused UI package test suite and build under React 19.2. Expected: all existing component/API tests pass and public exports remain unchanged.
+- [ ] Run: yarn workspace @rehla-ui/ui test; yarn workspace @rehla-ui/ui build. Expected: all existing component/API tests pass under React 19.2 and public exports remain unchanged.
 - [ ] Create Admin layout and page with a branded empty-state heading and one generic Button import from @rehla-ui/ui.
 - [ ] Create Web layout and page with a branded empty-state heading and one generic Button import from @rehla-ui/ui.
 - [ ] Import the UI package's exported styles.css in each app and keep app-specific styles local.
@@ -222,7 +224,7 @@
 - [ ] Run: yarn dev; open http://localhost:3001 and http://localhost:3000. Expected: both placeholder shells render and the shared UI button is styled.
 - [ ] Confirm apps/admin and apps/web import no apps/api or packages/modules source paths.
 
-### Task 6: Add CI and clean-checkout developer instructions
+### FND-06: Add CI and clean-checkout developer instructions
 
 **Files:**
 - Create: .github/workflows/ci.yml
@@ -237,14 +239,14 @@
 - Produces: CI and developer setup that use the same root install, validation, and app commands.
 
 - [ ] Configure CI for pushes and pull requests using actions/checkout@v4, actions/setup-node@v4, Node.js 24, Corepack, Yarn 3.5.1, immutable root install, and PostgreSQL 17 service.
-- [ ] Run CI steps in this order: verify:workspaces, lint, typecheck, test, API build, Admin/Web builds, API health smoke check.
+- [ ] Run CI steps in this order: verify:workspaces, lint, typecheck, test (including the Medusa health-route integration test), and build.
 - [ ] Cache dependencies from the root yarn.lock; do not cache or install from packages/ui as a separate project.
 - [ ] Document prerequisites, Corepack setup, root immutable install, Docker Compose PostgreSQL, all root scripts, focused workspace commands, local ports, and .env.example copying.
 - [ ] Document that Admin and Web are Next.js App Router apps and API is a separate Medusa runtime owned by Rehla.
 - [ ] Add the Medusa testing tool setup files and cross-platform test command using cross-env so the HTTP integration test runs on Windows and CI.
 - [ ] Check README and plans index links; run yarn format:check and all CI commands locally. Expected: same commands and configuration shape as CI.
 
-### Task 7: Converge the foundation and record the handoff
+### FND-07: Converge the foundation and record the handoff
 
 **Files:**
 - Modify: docs/development/plans/00-foundation.md
@@ -263,6 +265,7 @@
 ## Compatibility References
 
 - [Next.js 16 release](https://nextjs.org/blog/next-16) and [Next.js support policy](https://nextjs.org/support-policy)
+- [Prettier releases](https://github.com/prettier/prettier/releases)
 - [React Testing Library releases](https://github.com/testing-library/react-testing-library/releases) (use a release with React 19 support)
 - [Medusa current version](https://docs.medusajs.com/learn/update) and [Medusa monorepo prerequisites](https://docs.medusajs.com/cloud/projects/prerequisites)
 - [Medusa API route integration tests](https://docs.medusajs.com/learn/debugging-and-testing/testing-tools/integration-tests/api-routes) and [Medusa test setup](https://docs.medusajs.com/learn/debugging-and-testing/testing-tools)
