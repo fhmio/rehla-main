@@ -1,0 +1,49 @@
+<svg width="1600" height="420" viewBox="0 0 1600 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#071A14"/>
+      <stop offset="0.52" stop-color="#0B2A20"/>
+      <stop offset="1" stop-color="#12392A"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="260" y1="90" x2="1330" y2="340" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4D88A"/>
+      <stop offset="0.5" stop-color="#C9A34E"/>
+      <stop offset="1" stop-color="#F8E7B0"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FFFFFF" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.02"/>
+    </linearGradient>
+    <filter id="blur" x="-200" y="-200" width="2000" height="800" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="55"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="420" rx="28" fill="url(#bg)"/>
+  <circle cx="1450" cy="-10" r="260" fill="#B78A32" fill-opacity="0.13" filter="url(#blur)"/>
+  <circle cx="120" cy="430" r="240" fill="#4EA57A" fill-opacity="0.12" filter="url(#blur)"/>
+
+  <path d="M0 338C225 278 370 390 596 326C820 263 936 172 1157 215C1330 248 1450 322 1600 278V420H0V338Z" fill="#0D3327" fill-opacity="0.82"/>
+
+  <g opacity="0.82" stroke="url(#gold)">
+    <path d="M1170 65L1325 155V335L1170 245L1015 335V155L1170 65Z" stroke-width="2"/>
+    <path d="M1170 101L1294 173V317L1170 245L1046 317V173L1170 101Z" stroke-width="1.5" opacity="0.75"/>
+    <path d="M1170 136L1264 191V298L1170 244L1076 298V191L1170 136Z" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <rect x="92" y="74" width="840" height="272" rx="30" fill="url(#glass)" stroke="#D7B867" stroke-opacity="0.24"/>
+
+  <text x="140" y="166" fill="url(#gold)" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="800" letter-spacing="-2">REHLA</text>
+  <text x="141" y="218" fill="#E9F0EC" font-family="Inter, Arial, sans-serif" font-size="29" font-weight="600">رحله — Visa Service Commerce Platform</text>
+  <text x="141" y="268" fill="#AFC2BA" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="400">A Rehla-owned modular architecture for visa services, applications,</text>
+  <text x="141" y="298" fill="#AFC2BA" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="400">documents, bank-transfer payments, tracking, content, and operations.</text>
+
+  <g transform="translate(140 319)">
+    <rect width="124" height="34" rx="17" fill="#D7B867" fill-opacity="0.15" stroke="#D7B867" stroke-opacity="0.34"/>
+    <text x="62" y="23" text-anchor="middle" fill="#F2E7C2" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">MODULAR</text>
+    <rect x="136" width="148" height="34" rx="17" fill="#4EA57A" fill-opacity="0.14" stroke="#4EA57A" stroke-opacity="0.32"/>
+    <text x="210" y="23" text-anchor="middle" fill="#D7EEE1" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">SERVICE-FIRST</text>
+    <rect x="296" width="118" height="34" rx="17" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.16"/>
+    <text x="355" y="23" text-anchor="middle" fill="#E7EFEB" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">DOCS-FIRST</text>
+  </g>
+</svg>
